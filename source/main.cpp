@@ -1,14 +1,12 @@
 #include "MicroBit.h"
-#include "samples/Tests.h"
 
 MicroBit uBit;
 
 int main()
 {
+    MICROBIT_DEBUG_DMESG("Starting");
+    // Initialise the micro:bit runtime.
     uBit.init();
 
-    out_of_box_experience();
-
-    microbit_panic( 999 );
+    uBit.serial.printf("Hello");
 }
-

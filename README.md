@@ -1,3 +1,83 @@
+# FAB'S BUILD:
+
+Firstly, change the .o files in the codal-microbit-v2/lib to the ones I have provided inside "S140 O FILES" in the root directory
+
+My nrf52833-softdevice.ld file starts like this:
+
+MEMORY
+{
+  MBR (rx) : ORIGIN = 0x0000, LENGTH = 0x1000
+  SD (rx) : ORIGIN = 0x1000, LENGTH = 0x26000
+  FLASH (rx) : ORIGIN = 0x27000, LENGTH = 0x72000 - 0x27000
+  BOOTLOADER (rx) : ORIGIN = 0x72000, LENGTH = 0x7E000 - 0x72000
+  SETTINGS (rx) : ORIGIN = 0x7E000, LENGTH = 0x2000
+  UICR (rx) : ORIGIN = 0x10001014, LENGTH = 0x8
+  NOINIT (rwx) : ORIGIN = 0x20002030, LENGTH = 0x20002040 - 0x20002030
+  RAM (rwx) : ORIGIN = 0x20002040, LENGTH = 0x20020000 - 0x20002040
+}
+OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
+ENTRY(Reset_Handler)
+SECTIONS
+{
+    . = ALIGN(4);
+    .mbr :
+    {
+        KEEP(*(.mbr))
+    } > MBR
+
+    . = ALIGN(4);
+    .softdevice :
+    {
+        KEEP(*(.softdevice))
+    } > SD
+    
+    . = ALIGN(4);
+    .bootloader :
+    {
+        KEEP(*(.bootloader))
+    } > BOOTLOADER
+
+    . = ALIGN(4);
+    .uicr :
+    {
+        KEEP(*(.uicr))
+    } > UICR
+
+    . = ALIGN(4);
+    .settings :
+    {
+        KEEP(*(.settings))
+    } > SETTINGS
+    
+    .text :
+    {
+        KEEP(*(.isr_vector))
+        KEEP(*(.Vectors))
+        *(.text*)
+        KEEP(*(.init))
+        KEEP(*(.fini))
+        *crtbegin.o(.ctors)
+        *crtbegin?.o(.ctors)
+        *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+        *(SORT(.ctors.*))
+        *(.ctors)
+        *crtbegin.o(.dtors)
+        *crtbegin?.o(.dtors)
+        *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+        *(SORT(.dtors.*))
+        *(.dtors)
+        *(.rodata*)
+        KEEP(*(.eh_frame*))
+    } > FLASH
+
+I have also changed both libraries/codal-microbit-v2/target-locked.json and /target.json to:
+
+Line 48 (definitions):     "definitions": "-DAPP_TIMER_V2 -DAPP_TIMER_V2_RTC1_ENABLED -DNRF_DFU_TRANSPORT_BLE=1 -DSOFTDEVICE_PRESENT -DNRF52833_XXAA -DNRF52833 -DTARGET_MCU_NRF52833 -DNRF5 -DNRF52833 -D__CORTEX_M4 -DS140 -DTOOLCHAIN_GCC -D__START=target_start",
+
+Lastly, inside libraries/codal-microbit-nrf5sdk/CMakeLists.txt I have changed both lines 81 and 100 to include S140 headers instead of S113. Change "S113" to "S140"
+
+
+
 # microbit-v2-samples
 
 [![Native Build Status](https://github.com/lancaster-university/microbit-v2-samples/actions/workflows/build.yml/badge.svg)](https://github.com/lancaster-university/microbit-v2-samples/actions/workflows/build.yml) [![Docker Build Status](https://github.com/lancaster-university/microbit-v2-samples/actions/workflows/docker-image.yml/badge.svg)](https://github.com/lancaster-university/microbit-v2-samples/actions/workflows/docker-image.yml)
